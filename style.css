@@ -1,0 +1,11 @@
+/* Custom Styles for a refined look */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; scroll-behavior: smooth; }
+.nav-link.active { background-color: #4a5568; color: white; }
+.chart-container { position: relative; background-color: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; height: 400px; max-height: 50vh; }
+.modal { display: none; position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.75); align-items: center; justify-content: center; z-index: 50; }
+.modal.is-open { display: flex; }
+.hidden { display: none !important; }
+.error-message { color: #ef4444; font-size: 0.875rem; min-height: 1.25rem; margin-top: 0.5rem; font-weight: 500; }
+.loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

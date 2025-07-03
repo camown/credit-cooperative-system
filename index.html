@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Cooperative Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-gray-800">
+
+    <!-- Login/Register View -->
+    <div id="auth-view">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold text-gray-800">Cooperative Portal</h1>
+                    <p class="mt-2 text-gray-600">Please sign in or register to continue.</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form">
+                    <div class="space-y-4">
+                        <div><label for="login-email" class="text-base font-medium text-gray-700">Email (Username)</label><input type="email" id="login-email" required autocomplete="email" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-base"></div>
+                        <div><label for="login-password" class="text-base font-medium text-gray-700">Password</label><input type="password" id="login-password" required autocomplete="current-password" class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-base"></div>
+                    </div>
+                    <div id="login-error" class="error-message"></div>
+                    <button type="submit" class="w-full px-4 py-3 mt-4 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 text-lg">Login</button>
+                    <p class="mt-4 text-base text-center">Don't have an account? <a href="#" id="show-register-link" class="font-medium text-blue-600 hover:underline">Register here</a></p>
+                </form>
+
+                <!-- Registration Form (Initially Hidden) -->
+                <form id="register-form" class="hidden">
+                     <div class="space-y-4">
+                        <div><label for="register-name" class="text-base font-medium text-gray-700">Full Name</label><input type="text" id="register-name" required class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm text-base"></div>
+                        <div><label for="register-email" class="text-base font-medium text-gray-700">Email</label><input type="email" id="register-email" required class="w-full p-2 border rounded mt-1 text-base"></div>
+                        <div><label for="register-password" class="text-base font-medium text-gray-700">Password</label><input type="password" id="register-password" required class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm text-base"></div>
+                    </div>
+                    <div id="register-error" class="error-message"></div>
+                    <button type="submit" class="w-full px-4 py-3 mt-4 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 text-lg">Register</button>
+                    <p class="mt-4 text-base text-center">Already have an account? <a href="#" id="show-login-link" class="font-medium text-blue-600 hover:underline">Login here</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application View (Initially Hidden) -->
+    <div id="app-view" class="hidden">
+        <header class="bg-gray-800 text-white p-4 sticky top-0 z-20 shadow-md">
+            <div class="container mx-auto flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">Cooperative Dashboard</h1>
+                    <p class="text-lg text-gray-300">Welcome, <span id="user-display-name" class="font-bold">User</span>!</p>
+                    <p class="text-sm text-gray-400 mt-1">Navigate using the links below.</p>
+                </div>
+                <nav class="flex items-center space-x-4 p-2 bg-gray-700 rounded-lg border border-gray-600">
+                    <a href="#dashboard" class="nav-link px-4 py-3 rounded-md text-base font-bold">Dashboard</a>
+                    <a href="#members" class="nav-link px-4 py-3 rounded-md text-base font-bold">Members</a>
+                    <a href="#transactions" class="nav-link px-4 py-3 rounded-md text-base font-bold">Transactions</a>
+                    <a href="#financials" class="nav-link px-4 py-3 rounded-md text-base font-bold">Financials</a>
+                    <a href="#savings-tab" class="nav-link px-4 py-3 rounded-md text-base font-bold">Savings</a>
+                    <a href="#loans-tab" class="nav-link px-4 py-3 rounded-md text-base font-bold">Loans</a>
+                    <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-base">Logout</button>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 md:p-8">
+            <div id="loading-indicator" class="flex justify-center items-center p-16"><div class="loader"></div></div>
+            <div id="main-content" class="hidden">
+                <section id="dashboard" class="mb-16">
+                     <div class="prose max-w-full mb-8"><h2>Dashboard Overview</h2><p class="text-lg">A high-level, real-time snapshot of the cooperative's health and activity.</p></div>
+                    <div id="metrics-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 chart-container"><canvas id="monthlyTrendsChart"></canvas></div>
+                        <div class="chart-container"><canvas id="memberDemographicsChart"></canvas></div>
+                    </div>
+                </section>
+                <section id="members" class="mb-16 pt-16">
+                     <div class="prose max-w-full mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        <div><h2>Member Management</h2><p class="text-lg">Explore, search, and manage the member database.</p></div>
+                        <button id="add-member-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 text-base">Add New Member</button>
+                     </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg"><input type="text" id="member-search" placeholder="Search members..." class="w-full p-3 border rounded-lg mb-4 text-base"><div class="overflow-x-auto"><table class="min-w-full text-base"><thead class="bg-gray-100"><tr><th class="p-3 text-left font-semibold">Member ID</th><th class="p-3 text-left font-semibold">Name</th><th class="p-3 text-left font-semibold">Contact No.</th><th class="p-3 text-left font-semibold">Status</th><th class="p-3 text-center font-semibold">Actions</th></tr></thead><tbody id="members-table-body"></tbody></table></div></div>
+                </section>
+                <section id="transactions" class="pt-16">
+                    <div class="prose max-w-full mb-8"><h2>Transaction Ledger</h2><p class="text-lg">A log of all financial activities.</p></div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0 sm:space-x-4">
+                            <input type="text" id="transaction-search" placeholder="Search by type, member, or remarks..." class="w-full sm:w-auto flex-grow p-3 border rounded-lg text-base">
+                            <div class="flex items-center space-x-2">
+                                <label for="transaction-limit" class="text-sm font-medium">Show:</label>
+                                <select id="transaction-limit" class="p-2 border rounded-md text-sm">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="all">All</option>
+                                </select>
+                                <span class="text-sm text-gray-600" id="transaction-count-display"></span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-base">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-3 text-left font-semibold">Date</th>
+                                        <th class="p-3 text-left font-semibold">Member Name</th>
+                                        <th class="p-3 text-left font-semibold">Type</th>
+                                        <th class="p-3 text-right font-semibold">Amount (PHP)</th>
+                                        <th class="p-3 text-left font-semibold">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Financial Report Section -->
+                <section id="financials" class="pt-16 mb-16">
+                    <div class="prose max-w-full mb-8">
+                        <h2>Financial Report</h2>
+                        <p class="text-lg">An overview of the cooperative's financial health.</p>
+                    </div>
+
+                    <!-- Overall Financial Summary -->
+                    <h3 class="text-xl font-bold mb-4 mt-8">Overall Financial Summary</h3>
+                    <div id="financial-metrics-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 text-base">
+                        <!-- Financial metrics will be rendered here -->
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">Income Statement Overview</h3>
+                            <table class="min-w-full text-base">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="p-3 text-left font-semibold">Category</th>
+                                        <th class="p-3 text-right font-semibold">Amount (PHP)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="income-statement-body">
+                                    <!-- Income statement data will be rendered here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h3 class="text-xl font-bold mb-4">Balance Sheet Overview</h3>
+                            <table class="min-w-full text-base">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="p-3 text-left font-semibold">Category</th>
+                                        <th class="p-3 text-right font-semibold">Amount (PHP)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="balance-sheet-body">
+                                    <!-- Balance sheet data will be rendered here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="chart-container"><canvas id="financialFlowChart"></canvas></div>
+                        <div class="chart-container"><canvas id="assetLiabilityChart"></canvas></div>
+                    </div>
+
+                    <!-- Weekly Financial Report Section -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 mt-8">
+                        <h3 class="text-xl font-bold">Weekly Financial Report</h3>
+                        <!-- NEW: Date Inputs for Report Generation -->
+                        <div class="flex items-center space-x-2 mt-2 md:mt-0">
+                            <label for="report-start-date" class="text-sm font-medium">From:</label>
+                            <input type="date" id="report-start-date" class="p-2 border rounded-md text-sm">
+                            <label for="report-end-date" class="text-sm font-medium">To:</label>
+                            <input type="date" id="report-end-date" class="p-2 border rounded-md text-sm">
+                            <button id="generate-weekly-report-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 text-sm">Generate Report</button>
+                        </div>
+                    </div>
+                    <p id="weekly-report-date-range" class="text-sm text-gray-600 mb-4">Report for: </p>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <table class="min-w-full text-base">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-3 text-left font-semibold">Metric</th>
+                                    <th class="p-3 text-right font-semibold">Value (PHP) / Count</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weekly-report-body">
+                                <!-- Weekly report data will be rendered here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <!-- End Financial Report Section -->
+
+                <!-- Savings Tab Content (Hidden by default, will show when "Savings" tab is clicked) -->
+                <section id="savings-tab" class="pt-16 hidden">
+                    <div class="prose max-w-full mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        <div><h2>Savings Overview</h2><p class="text-lg">Manage and view all member savings records.</p></div>
+                        <button id="new-deposit-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 text-base">New Deposit</button>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <input type="text" id="savings-search" placeholder="Search savings by member..." class="w-full p-3 border rounded-lg mb-4 text-base">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-base">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-3 text-left font-semibold">Member Name</th>
+                                        <th class="p-3 text-right font-semibold">Total Savings (PHP)</th>
+                                        <th class="p-3 text-center font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="savings-summary-table-body">
+                                    <!-- Savings summary per member will be rendered here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Loans Tab Content (Hidden by default, will show when "Loans" tab is clicked) -->
+                <section id="loans-tab" class="pt-16 hidden">
+                    <div class="prose max-w-full mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        <div><h2>Loan Management</h2><p class="text-lg">Track and manage all outstanding and historical loans.</p></div>
+                        <button id="new-loan-btn" class="bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-yellow-700 text-base">New Loan Application</button>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <input type="text" id="loan-search" placeholder="Search loans by member..." class="w-full p-3 border rounded-lg mb-4 text-base">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-base">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-3 text-left font-semibold">Member Name</th>
+                                        <th class="p-3 text-right font-semibold">Loan Amount (PHP)</th>
+                                        <th class="p-3 text-right font-semibold">Balance (PHP)</th>
+                                        <th class="p-3 text-left font-semibold">Status</th>
+                                        <th class="p-3 text-left font-semibold">Issue Date</th>
+                                        <th class="p-3 text-center font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loans-table-body">
+                                    <!-- All loan records will be rendered here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- Member Details/Edit Modal -->
+        <div id="member-details-modal" class="modal fixed inset-0 items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <form id="member-details-form" class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold" id="member-details-title">Member Details</h2>
+                        <button type="button" class="close-modal-btn text-gray-500 text-3xl">&times;</button>
+                    </div>
+                    <div id="member-details-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg mb-4 text-base"></div>
+                    <input type="hidden" name="member_id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-base">
+                        <h3 class="md:col-span-2 text-lg font-semibold text-gray-700 mt-2">Personal Information</h3>
+                        <div><label class="block text-base font-medium">Member Code</label><input name="member_code" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Full Name</label><input name="name" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Contact No.</label><input name="contact_no" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div class="md:col-span-2"><label class="block text-base font-medium">Address</label><input name="address" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Date of Birth</label><input name="dob" type="date" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Place of Birth</label><input name="pob" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Citizenship</label><input name="citizenship" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Sex</label><select name="sex" class="w-full p-2 border rounded mt-1" disabled><option>Male</option><option>Female</option></select></div>
+                        <div><label class="block text-base font-medium">Civil Status</label><select name="civil_status" class="w-full p-2 border rounded mt-1" disabled><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option></select></div>
+                        <div><label class="block text-base font-medium">Facebook Account</label><input name="fb_account" type="text" placeholder="N/A if none" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <h3 class="md:col-span-2 text-lg font-semibold text-gray-700 mt-4">Family Background</h3>
+                        <div><label class="block text-base font-medium">Spouse Name</label><input name="spouse_name" type="text" placeholder="N/A" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Spouse Occupation</label><input name="spouse_occupation" type="text" placeholder="N/A" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Father's Name</label><input name="father_name" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Father's Occupation</label><input name="father_occupation" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Mother's Name</label><input name="mother_name" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Mother's Occupation</label><input name="mother_occupation" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <h3 class="md:col-span-2 text-lg font-semibold text-gray-700 mt-4">Educational Attainment</h3>
+                        <div><label class="block text-base font-medium">Elementary</label><input name="elementary" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Secondary</label><input name="secondary" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Junior High</label><input name="junior_high" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div><label class="block text-base font-medium">Senior High</label><input name="senior_high" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                        <div class="md:col-span-2"><label class="block text-base font-medium">College</label><input name="college" type="text" class="w-full p-2 border rounded mt-1" readonly></div>
+                    </div>
+                    <div class="mt-8 flex justify-end space-x-4" id="member-details-actions">
+                        <button type="button" id="edit-member-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 text-base">Edit</button>
+                        <button type="submit" id="save-member-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 text-base hidden">Save Changes</button>
+                        <button type="button" id="cancel-edit-member-btn" class="bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-500 text-base hidden">Cancel</button>
+                        <button type="button" id="delete-member-btn" class="bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 text-base">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="add-member-modal" class="modal fixed inset-0 items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"><form id="add-member-form" class="p-8">
+                <div class="flex justify-between items-center mb-6 border-b pb-4"><h2 class="text-2xl font-bold">New Membership Form</h2><button type="button" class="close-modal-btn text-gray-500 text-3xl">&times;</button></div>
+                <div id="member-form-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg mb-4 text-base"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-base">
+                    <h3 class="md:col-span-2 text-lg font-semibold text-gray-700 mt-2">Personal Information</h3>
+                    <div><label class="block text-base font-medium">Full Name</label><input required name="name" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Contact No.</label><input required name="contact_no" type="text" placeholder="09xxxxxxxxx" class="w-full p-2 border rounded mt-1"></div>
+                    <div class="md:col-span-2"><label class="block text-base font-medium">Address</label><input required name="address" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Date of Birth</label><input required name="dob" type="date" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Place of Birth</label><input required name="pob" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Citizenship</label><input required name="citizenship" type="text" value="Filipino" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Sex</label><select name="sex" class="w-full p-2 border rounded mt-1"><option>Male</option><option>Female</option></select></div>
+                    <div><label class="block text-base font-medium">Civil Status</label><select name="civil_status" class="w-full p-2 border rounded mt-1"><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option></select></div>
+                    <div><label class="block text-base font-medium">Facebook Account</label><input name="fb_account" type="text" placeholder="N/A if none" class="w-full p-2 border rounded mt-1"></div>
+                    <h3 class="md:col-span-2 text-lg font-semibold text-gray-700 mt-4">Family Background</h3>
+                    <div><label class="block text-base font-medium">Spouse Name</label><input name="spouse_name" type="text" placeholder="N/A" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Spouse Occupation</label><input name="spouse_occupation" type="text" placeholder="N/A" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Father's Name</label><input required name="father_name" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Father's Occupation</label><input required name="father_occupation" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Mother's Name</label><input required name="mother_name" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Mother's Occupation</label><input required name="mother_occupation" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <h3 class="md:col-span-2 text-lg font-semibold text-gray-700 mt-4">Educational Attainment</h3>
+                    <div><label class="block text-base font-medium">Elementary</label><input name="elementary" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Secondary</label><input name="secondary" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Junior High</label><input name="junior_high" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div><label class="block text-base font-medium">Senior High</label><input name="senior_high" placeholder="N/A" type="text" class="w-full p-2 border rounded mt-1"></div>
+                    <div class="md:col-span-2"><label class="block text-base font-medium">College</label><input name="college" type="text" class="w-full p-2 border rounded mt-1"></div>
+                </div>
+                <div class="mt-8 flex justify-end"><button type="submit" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 text-base">Submit Membership</button></div>
+            </form></div>
+        </div>
+
+        <div id="savings-modal" class="modal fixed inset-0 items-center justify-center p-4">
+             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                 <form id="savings-form" class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4"><h2 class="text-2xl font-bold text-gray-800">New Deposit</h2><button type="button" class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div>
+                    <div id="savings-form-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg mb-4 text-base"></div>
+                    <div class="mb-4">
+                        <label class="block mb-1 font-medium text-base" for="savings-member-select">Select Member</label>
+                        <select id="savings-member-select" required class="w-full p-2 border rounded mt-1 text-base">
+                            <option value="">-- Select Member --</option>
+                        </select>
+                        <input type="hidden" name="member_id">
+                    </div>
+                    <div class="mb-6"><label class="block mb-1 font-medium text-base">Deposit Amount (PHP)</label><input required name="amount" type="number" step="0.01" min="1" class="w-full p-2 border rounded text-base"></div>
+                    <div class="flex justify-end space-x-4"><button type="button" class="cancel-btn bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-400 text-base">Cancel</button><button type="submit" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 text-base">Submit Deposit</button></div>
+                </form>
+            </div>
+        </div>
+        <div id="loan-modal" class="modal fixed inset-0 items-center justify-center p-4">
+             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                 <form id="loan-form" class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4"><h2 class="text-2xl font-bold text-gray-800">New Loan Application</h2><button type="button" class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div>
+                    <div id="loan-form-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg mb-4 text-base"></div>
+                    <div class="mb-4">
+                        <label class="block mb-1 font-medium text-base" for="loan-member-select">Select Member</label>
+                        <select id="loan-member-select" required class="w-full p-2 border rounded mt-1 text-base">
+                            <option value="">-- Select Member --</option>
+                        </select>
+                        <input type="hidden" name="member_id">
+                    </div>
+                    <div class="mb-4"><label class="block mb-1 font-medium text-base">Loan Amount (PHP)</label><input required name="loan_amount" type="number" step="0.01" min="1" class="w-full p-2 border rounded text-base"></div>
+                    <div class="mb-6"><label class="block mb-1 font-medium text-base">Duration (Months)</label><input required name="duration" type="number" min="1" max="12" value="12" class="w-full p-2 border rounded text-base"></div>
+                    <div class="flex justify-end space-x-4"><button type="button" class="cancel-btn bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-400 text-base">Cancel</button><button type="submit" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 text-base">Apply for Loan</button></div>
+                </form>
+            </div>
+        </div>
+
+        <div id="loan-payment-modal" class="modal fixed inset-0 items-center justify-center p-4">
+             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                 <form id="loan-payment-form" class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4"><h2 class="text-2xl font-bold text-gray-800">Record Loan Payment</h2><button type="button" class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div>
+                    <div id="loan-payment-form-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg mb-4 text-base"></div>
+                    <input type="hidden" name="loan_id">
+                    <input type="hidden" name="member_id">
+                    <div class="mb-4"><label class="block mb-1 font-medium text-base">Member</label><p id="loan-payment-member-name" class="font-bold text-lg"></p></div>
+                    <div class="mb-4"><label class="block mb-1 font-medium text-base">Loan Amount</label><p id="loan-payment-loan-amount" class="font-bold text-lg"></p></div>
+                    <div class="mb-4"><label class="block mb-1 font-medium text-base">Current Balance</label><p id="loan-payment-current-balance" class="font-bold text-lg text-red-600"></p></div>
+                    <div class="mb-6"><label class="block mb-1 font-medium text-base">Payment Amount (PHP)</label><input required name="payment_amount" type="number" step="0.01" min="1" class="w-full p-2 border rounded text-base"></div>
+                    <div class="flex justify-end space-x-4"><button type="button" class="cancel-btn bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-400 text-base">Cancel</button><button type="submit" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 text-base">Record Payment</button></div>
+                </form>
+            </div>
+        </div>
+
+        <div id="withdrawal-modal" class="modal fixed inset-0 items-center justify-center p-4">
+             <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                 <form id="withdrawal-form" class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4"><h2 class="text-2xl font-bold text-gray-800">New Withdrawal</h2><button type="button" class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div>
+                    <div id="withdrawal-form-error" class="hidden p-3 bg-red-100 text-red-700 rounded-lg mb-4 text-base"></div>
+                    <input type="hidden" name="member_id">
+                    <div class="mb-4"><label class="block mb-1 font-medium text-base">Member</label><p id="withdrawal-member-name" class="font-bold text-lg"></p></div>
+                    <div class="mb-4"><label class="block mb-1 font-medium text-base">Current Savings</label><p id="withdrawal-current-savings" class="font-bold text-lg text-green-600"></p></div>
+                    <div class="mb-6"><label class="block mb-1 font-medium text-base">Withdrawal Amount (PHP)</label><input required name="amount" type="number" step="0.01" min="1" class="w-full p-2 border rounded text-base"></div>
+                    <div class="flex justify-end space-x-4"><button type="button" class="cancel-btn bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-400 text-base">Cancel</button><button type="submit" class="bg-red-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 text-base">Submit Withdrawal</button></div>
+                </form>
+            </div>
+        </div>
+
+        <div id="savings-ledger-modal" class="modal fixed inset-0 items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">Savings Ledger for <span id="ledger-member-name" class="font-bold"></span></h2>
+                        <button type="button" class="close-modal-btn text-gray-500 text-3xl">&times;</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-base">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-3 text-left font-semibold">Date</th>
+                                    <th class="p-3 text-left font-semibold">Type</th>
+                                    <th class="p-3 text-right font-semibold">Amount (PHP)</th>
+                                    <th class="p-3 text-left font-semibold">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="savings-ledger-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loan-ledger-modal" class="modal fixed inset-0 items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-8">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">Loan Details for <span id="loan-ledger-member-name" class="font-bold"></span></h2>
+                        <button type="button" class="close-modal-btn text-gray-500 text-3xl">&times;</button>
+                    </div>
+                     <p class="text-lg font-semibold mb-4">Loan Amount: <span id="loan-ledger-loan-amount"></span> | Current Balance: <span id="loan-ledger-current-balance" class="text-red-600"></span></p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-base">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-3 text-left font-semibold">Date</th>
+                                    <th class="p-3 text-left font-semibold">Type</th>
+                                    <th class="p-3 text-right font-semibold">Amount (PHP)</th>
+                                    <th class="p-3 text-left font-semibold">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loan-ledger-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
