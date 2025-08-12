@@ -6,7 +6,7 @@ import { getFirestore, collection, getDocs, addDoc, query, orderBy, where, updat
 // --- FIREBASE CONFIGURATION ---
 // This configuration is outside any function, making it available throughout the module.
 const firebaseConfig = {
-    apiKey: "",
+    apiKey: "AIzaSyBI1T9X4HRY9KX97HAg2c5XZHhD6UxGKmw",
     authDomain: "credit-cooperative-system.firebaseapp.com",
     projectId: "credit-cooperative-system",
     storageBucket: "credit-cooperative-system.appspot.com",
@@ -1682,3 +1682,4 @@ function populateLoanLedgerModal(loanId, memberId) {
     });
     loanLedgerModal.classList.add('is-open');
 }
+
